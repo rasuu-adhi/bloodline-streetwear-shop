@@ -3,22 +3,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types';
 
-interface DatabaseProduct {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  original_price: number | null;
-  category: 'men' | 'women' | 'accessories';
-  sizes: string[] | null;
-  colors: string[] | null;
-  images: string[] | null;
-  stock: number | null;
-  featured: boolean | null;
-  rating: number | null;
-  reviews: number | null;
-}
-
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,13 +18,13 @@ export const useProducts = () => {
 
       if (error) throw error;
 
-      const transformedProducts: Product[] = (data || []).map((item: DatabaseProduct) => ({
+      const transformedProducts: Product[] = (data || []).map((item) => ({
         id: item.id,
         name: item.name,
         description: item.description || '',
         price: Number(item.price),
         originalPrice: item.original_price ? Number(item.original_price) : undefined,
-        category: item.category,
+        category: item.category as 'men' | 'women' | 'accessories',
         sizes: item.sizes || [],
         colors: item.colors || [],
         images: item.images || [],
