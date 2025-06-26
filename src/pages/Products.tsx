@@ -4,13 +4,14 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Star, Filter, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { products } from '@/data/products';
+import { useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/hooks/useCart';
 import { useToast } from '@/hooks/use-toast';
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const { products, loading, error } = useProducts();
   const { addToCart } = useCart();
   const { toast } = useToast();
 
@@ -35,15 +36,17 @@ const Products = () => {
     }
 
     return filtered;
-  }, [categoryFilter, priceSort]);
+  }, [products, categoryFilter, priceSort]);
 
   const handleAddToCart = (product: any, e: React.MouseEvent) => {
     e.preventDefault();
-    addToCart(product, product.sizes[0], product.colors[0], 1);
-    toast({
-      title: "Added to cart!",
-      description: `${product.name} has been added to your cart.`,
-    });
+    if (product.sizes.length > 0 && product.colors.length > 0) {
+      addToCart(product, product.sizes[0], product.colors[0], 1);
+      toast({
+        title: "Added to cart!",
+        description: `${product.name} has been added to your cart.`,
+      });
+    }
   };
 
   const updateFilter = (key: string, value: string) => {
@@ -55,6 +58,26 @@ const Products = () => {
     }
     setSearchParams(newParams);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-white text-xl">Loading products...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-red-500 text-xl">Error loading products: {error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black py-8">
@@ -146,7 +169,7 @@ const Products = () => {
                   <Link to={`/product/${product.id}`}>
                     <div className="relative overflow-hidden">
                       <img
-                        src={product.images[0]}
+                        src={product.images[0] || '/placeholder.svg'}
                         alt={product.name}
                         className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
                       />

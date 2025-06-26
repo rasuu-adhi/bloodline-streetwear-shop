@@ -1,21 +1,38 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { signIn, user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement authentication logic
-    console.log('Login attempt:', { email, password });
+    setLoading(true);
+
+    const { error } = await signIn(email, password);
+    
+    if (!error) {
+      navigate('/', { replace: true });
+    }
+    
+    setLoading(false);
   };
 
   return (
@@ -90,49 +107,17 @@ const Login = () => {
                   Remember me
                 </Label>
               </div>
-
-              <Link
-                to="/forgot-password"
-                className="text-sm text-primary hover:text-primary-light transition-colors"
-              >
-                Forgot your password?
-              </Link>
             </div>
 
             <Button
               type="submit"
               size="lg"
+              disabled={loading}
               className="w-full bg-primary hover:bg-primary-dark text-white font-semibold"
             >
-              Sign in
+              {loading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-700" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-900 text-gray-400">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                className="border-gray-700 text-gray-300 hover:bg-gray-800"
-              >
-                Google
-              </Button>
-              <Button
-                variant="outline"
-                className="border-gray-700 text-gray-300 hover:bg-gray-800"
-              >
-                Facebook
-              </Button>
-            </div>
-          </div>
 
           <p className="mt-6 text-center text-sm text-gray-400">
             Don't have an account?{' '}

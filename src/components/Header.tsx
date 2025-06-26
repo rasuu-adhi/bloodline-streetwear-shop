@@ -1,23 +1,20 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, User, ShoppingBag, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { getCartCount } = useCart();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { cart } = useCart();
+  const { user, signOut } = useAuth();
 
-  const navigation = [
-    { name: 'Men', href: '/products?category=men' },
-    { name: 'Women', href: '/products?category=women' },
-    { name: 'Accessories', href: '/products?category=accessories' },
-    { name: 'Sale', href: '/products?sale=true' },
-  ];
+  const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <header className="bg-black/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
+    <header className="bg-black border-b border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -29,66 +26,194 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className="text-gray-300 hover:text-white transition-colors duration-200 font-medium"
-              >
-                {item.name}
-              </Link>
-            ))}
+            <Link
+              to="/"
+              className="text-gray-300 hover:text-white transition-colors font-medium"
+            >
+              Home
+            </Link>
+            <Link
+              to="/products"
+              className="text-gray-300 hover:text-white transition-colors font-medium"
+            >
+              Products
+            </Link>
+            <Link
+              to="/products?category=men"
+              className="text-gray-300 hover:text-white transition-colors font-medium"
+            >
+              Men
+            </Link>
+            <Link
+              to="/products?category=women"
+              className="text-gray-300 hover:text-white transition-colors font-medium"
+            >
+              Women
+            </Link>
+            <Link
+              to="/products?category=accessories"
+              className="text-gray-300 hover:text-white transition-colors font-medium"
+            >
+              Accessories
+            </Link>
           </nav>
 
-          {/* Right Icons */}
-          <div className="flex items-center space-x-4">
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-4">
             <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
               <Search className="h-5 w-5" />
             </Button>
             
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
-            
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
                 <ShoppingBag className="h-5 w-5" />
-                {getCartCount() > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {getCartCount()}
+                {cartItemsCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItemsCount}
                   </span>
                 )}
               </Button>
             </Link>
 
-            {/* Mobile menu button */}
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Button
+                  onClick={signOut}
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-600 text-gray-300 hover:border-primary hover:text-primary"
+                >
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link to="/login">
+                  <Button
+                    variant="outline" 
+                    size="sm"
+                    className="border-gray-600 text-gray-300 hover:border-primary hover:text-primary"
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button 
+                    size="sm"
+                    className="bg-primary hover:bg-primary-dark text-white"
+                  >
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center space-x-2">
+            <Link to="/cart" className="relative">
+              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
+                <ShoppingBag className="h-5 w-5" />
+                {cartItemsCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItemsCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden text-gray-300 hover:text-white"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gray-300 hover:text-white"
             >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-800 mt-2">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className="block px-3 py-2 text-gray-300 hover:text-white transition-colors duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
+        {isMobileMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-800">
+              <Link
+                to="/"
+                className="block px-3 py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link
+                to="/products"
+                className="block px-3 py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Products
+              </Link>
+              <Link
+                to="/products?category=men"
+                className="block px-3 py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Men
+              </Link>
+              <Link
+                to="/products?category=women"
+                className="block px-3 py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Women
+              </Link>
+              <Link
+                to="/products?category=accessories"
+                className="block px-3 py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Accessories
+              </Link>
+              
+              {user ? (
+                <div className="border-t border-gray-800 pt-2 mt-2">
+                  <Link
+                    to="/profile"
+                    className="block px-3 py-2 text-gray-300 hover:text-white transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-3 py-2 text-gray-300 hover:text-white transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <div className="border-t border-gray-800 pt-2 mt-2 space-y-2">
+                  <Link
+                    to="/login"
+                    className="block px-3 py-2 text-gray-300 hover:text-white transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="block px-3 py-2 text-primary hover:text-primary-light transition-colors font-semibold"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

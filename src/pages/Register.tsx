@@ -1,26 +1,43 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/useAuth';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
+  const { signUp, user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement registration logic
-    console.log('Registration attempt:', formData);
+    
+    if (formData.password !== formData.confirmPassword) {
+      // Toast will be handled by the useAuth hook
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await signUp(formData.email, formData.password, formData.name);
+    setLoading(false);
   };
 
   return (
@@ -122,60 +139,15 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="flex items-center">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 accent-primary bg-gray-800 border-gray-700 rounded"
-              />
-              <Label htmlFor="terms" className="ml-2 text-sm text-gray-300">
-                I agree to the{' '}
-                <Link to="/terms" className="text-primary hover:text-primary-light">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link to="/privacy" className="text-primary hover:text-primary-light">
-                  Privacy Policy
-                </Link>
-              </Label>
-            </div>
-
             <Button
               type="submit"
               size="lg"
+              disabled={loading}
               className="w-full bg-primary hover:bg-primary-dark text-white font-semibold"
             >
-              Create account
+              {loading ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-700" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-900 text-gray-400">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                className="border-gray-700 text-gray-300 hover:bg-gray-800"
-              >
-                Google
-              </Button>
-              <Button
-                variant="outline"
-                className="border-gray-700 text-gray-300 hover:bg-gray-800"
-              >
-                Facebook
-              </Button>
-            </div>
-          </div>
 
           <p className="mt-6 text-center text-sm text-gray-400">
             Already have an account?{' '}
