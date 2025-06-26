@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
@@ -13,6 +12,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
@@ -25,13 +25,18 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg('');
+
+    if (!email || !password) {
+      setErrorMsg('Email and password are required.');
+      setLoading(false);
+      return;
+    }
 
     const { error } = await signIn(email, password);
-    
-    if (!error) {
-      navigate('/', { replace: true });
+    if (error) {
+      setErrorMsg(error.message || 'Login failed. Please try again.');
     }
-    
     setLoading(false);
   };
 
@@ -56,6 +61,11 @@ const Login = () => {
         {/* Login Form */}
         <Card className="bg-gray-900 border-gray-800 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error message */}
+            {errorMsg && (
+              <div className="text-red-500 text-sm text-center mb-2">{errorMsg}</div>
+            )}
+
             <div>
               <Label htmlFor="email" className="text-white">Email address</Label>
               <div className="mt-2 relative">
